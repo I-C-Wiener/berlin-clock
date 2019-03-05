@@ -1,54 +1,52 @@
 package com.ubs.opsit.interviews;
 
+import java.util.StringJoiner;
+
 public class BerlinClock implements TimeConverter {
+
+    private static final String LINE_SEPARATOR = System.getProperty("line.separator");
+    private static final String YELLOW = "Y";
+    private static final String RED = "R";
+    private static final String OFF = "O";
 
     @Override
     public String convertTime(String aTime) {
-        if (!aTime.matches("^(?:\\d|[01]\\d|2[0-4]):[0-5]\\d:[0-5]\\d$")) {
-            throw new IllegalArgumentException(String.format("The specified time '%s' does not conform to the required format, 'hh:mm:ss'.", aTime));
-        }
+        final Time time = Time.parse(aTime);
 
-        String[] timeParts = aTime.split(":");
-        int hours = Integer.parseInt(timeParts[0]);
-        int minutes = Integer.parseInt(timeParts[1]);
-        int seconds = Integer.parseInt(timeParts[2]);
-
-        String lineSeparator = System.getProperty("line.separator");
-
-        return new StringBuilder(9)
-                .append(buildSecondsLamp(seconds)).append(lineSeparator)
-                .append(buildFiveHoursLamps(hours)).append(lineSeparator)
-                .append(buildOneHourLamps(hours)).append(lineSeparator)
-                .append(buildFiveMinutesLamps(minutes)).append(lineSeparator)
-                .append(buildOneMinuteLamps(minutes))
+        return new StringJoiner(LINE_SEPARATOR)
+                .add(buildSecondsLamp(time.getSeconds()))
+                .add(buildFiveHoursLamps(time.getHours()))
+                .add(buildOneHourLamps(time.getHours()))
+                .add(buildFiveMinutesLamps(time.getMinutes()))
+                .add(buildOneMinuteLamps(time.getMinutes()))
                 .toString();
     }
 
     private static String buildSecondsLamp(int seconds) {
-        return seconds % 2 == 0 ? "Y" : "O";
+        return seconds % 2 == 0 ? YELLOW : OFF;
     }
 
     private static StringBuilder buildFiveHoursLamps(int hours) {
-        return buildLamps(hours / 5, 4, "R");
+        return buildLamps(hours / 5, 4, RED);
     }
 
     private static StringBuilder buildOneHourLamps(int hours) {
-        return buildLamps(hours % 5, 4, "R");
+        return buildLamps(hours % 5, 4, RED);
     }
 
     private static StringBuilder buildFiveMinutesLamps(int minutes) {
-        return highlightQuarters(buildLamps(minutes / 5, 11, "Y"));
+        return highlightQuarters(buildLamps(minutes / 5, 11, YELLOW));
     }
 
     private static StringBuilder buildOneMinuteLamps(int minutes) {
-        return buildLamps(minutes % 5, 4, "Y");
+        return buildLamps(minutes % 5, 4, YELLOW);
     }
 
     private static StringBuilder buildLamps(int highlightCondition, int count, String color) {
         StringBuilder result = new StringBuilder(count);
 
         for (int i = 0; i < count; i++) {
-            result.append(highlightCondition > i ? color : "O");
+            result.append(highlightCondition > i ? color : OFF);
         }
 
         return result;
@@ -56,10 +54,10 @@ public class BerlinClock implements TimeConverter {
 
     private static StringBuilder highlightQuarters(StringBuilder lamps) {
         for (int i = 0; i < lamps.length(); i++) {
-            if (lamps.charAt(i) == 'O') {
+            if (lamps.charAt(i) == OFF.charAt(0)) {
                 break;
             } else if ((i + 1) % 3 == 0) {
-                lamps.replace(i, i + 1, "R");
+                lamps.replace(i, i + 1, RED);
             }
         }
 
